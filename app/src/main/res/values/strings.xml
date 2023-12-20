@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ProyectoEmpotrados</string>
+    <string name="reservado">Book reserved correctly</string>
+    <string name="cancelarReserva">Reservation canceled</string>
+</resources>

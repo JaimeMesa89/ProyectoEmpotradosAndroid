@@ -13,10 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class DetalleLibroActivity extends AppCompatActivity {
-
     private LibroDbHelper dbHelper;
-
-
 
     @SuppressLint("Range")
     @Override

@@ -54,6 +54,32 @@ public class LibroDbHelper extends SQLiteOpenHelper {
         return titulos.toArray(new String[0]);
     }
 
+    public String[] obtenerLibroPorTitulo(String titulo) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                LibroContract.LibroEntry.TABLE_NAME,
+                PROJECTION_TITULOS,
+                LibroContract.LibroEntry.COLUMN_NAME_TITULO + " = ?",
+                new String[]{titulo},
+                null, null, null
+        );
+
+        List<String> titulos = new ArrayList<>();
+        if (cursor != null) {
+            try {
+                int tituloIndex = cursor.getColumnIndex(LibroContract.LibroEntry.COLUMN_NAME_TITULO);
+                while (cursor.moveToNext()) {
+                    String tituloEncontrado = cursor.getString(tituloIndex);
+                    titulos.add(tituloEncontrado);
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        return titulos.toArray(new String[0]);
+    }
+
+
     public Cursor obtenerDetallesLibro(String titulo) {
         SQLiteDatabase db = this.getReadableDatabase();
 

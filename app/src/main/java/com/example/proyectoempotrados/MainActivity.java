@@ -2,6 +2,7 @@ package com.example.proyectoempotrados;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,12 +10,22 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity {
 
     private LibroDbHelper dbHelper;
     private SQLiteDatabase db;
+    private EditText editText;
+    private ListView listViewLibros;
+
+    private void initializeViews() {
+        dbHelper = new LibroDbHelper(getApplicationContext(), "libros.db");
+        editText = findViewById(R.id.editTextText);
+        db = dbHelper.getWritableDatabase();
+        listViewLibros = findViewById(R.id.listaLibros);
+    }
 
     private void initLibros(){
         ContentValues values = new ContentValues();
@@ -59,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dbHelper = new LibroDbHelper(getApplicationContext(), "libros.db");
-        db = dbHelper.getWritableDatabase();
+        initializeViews();
 
         initLibros();
 
@@ -84,5 +94,49 @@ public class MainActivity extends AppCompatActivity {
 
     private String[] obtenerTitulosLibros() {
         return dbHelper.obtenerTitulosLibros();
+    }
+
+    private String[] obtenerLibroPorTitulo(String titulo) {
+        return dbHelper.obtenerLibroPorTitulo(titulo);
+    }
+
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.buttonSearch: search_by_name(); break;
+        }
+    }
+
+    @SuppressLint("Rangs")
+    public void search_by_name() {
+        String tituloBusqueda = editText.getText().toString().trim().toLowerCase();
+        String[] titulosEncontrados;
+
+        if (tituloBusqueda.isEmpty()) {
+            titulosEncontrados = dbHelper.obtenerTitulosLibros();
+        } else {
+            titulosEncontrados = dbHelper.obtenerLibroPorTitulo(tituloBusqueda);
+        }
+
+        ListView listViewLibros = findViewById(R.id.listaLibros);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titulosEncontrados);
+        listViewLibros.setAdapter(adapter);
+
+
+        listViewLibros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String tituloSeleccionado = (String) parent.getItemAtPosition(position);
+
+                Intent intent = new Intent(MainActivity.this, DetalleLibroActivity.class);
+                intent.putExtra("titulo_libro", tituloSeleccionado);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        db.close();
     }
 }

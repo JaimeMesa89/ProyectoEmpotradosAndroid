@@ -5,65 +5,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
 
     private LibroDbHelper dbHelper;
-    private SQLiteDatabase db;
     private EditText editText;
     private ListView listViewLibros;
-
-    private void initializeViews() {
-        dbHelper = new LibroDbHelper(getApplicationContext(), "libros.db");
-        editText = findViewById(R.id.editTextText);
-        db = dbHelper.getWritableDatabase();
-        listViewLibros = findViewById(R.id.listaLibros);
-    }
-
-    private void initLibros(){
-        ContentValues values = new ContentValues();
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "El Señor de los Anillos");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "J.R.R. Tolkien");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "Minotauro");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, 0);
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "Cien años de soledad");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "Gabriel García Márquez");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "Sudamericana");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, 0);
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "Harry Potter y la piedra filosofal");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "J.K. Rowling");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "Salamandra");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, 0);
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "1984");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "George Orwell");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "Debolsillo");
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "To Kill a Mockingbird");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "Harper Lee");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "J.B. Lippincott & Co.");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, 0);
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, "The Great Gatsby");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, "F. Scott Fitzgerald");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, "Charles Scribner's Sons");
-        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, 0);
-        db.insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,72 +25,81 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initializeViews();
-
         initLibros();
+        setupListView();
+    }
 
-        String[] titulos = obtenerTitulosLibros();
+    private void initializeViews() {
+        dbHelper = new LibroDbHelper(getApplicationContext(), "libros.db");
+        editText = findViewById(R.id.editTextText);
+        listViewLibros = findViewById(R.id.listaLibros);
+    }
 
-        ListView listViewLibros = findViewById(R.id.listaLibros);
+    private void initLibros() {
+        insertLibro("El Señor de los Anillos", "J.R.R. Tolkien", "Minotauro", 0);
+        insertLibro("Cien años de soledad", "Gabriel García Márquez", "Sudamericana", 0);
+        insertLibro("Harry Potter y la piedra filosofal", "J.K. Rowling", "Salamandra", 0);
+        insertLibro("1984", "George Orwell", "Debolsillo", 0);
+        insertLibro("To Kill a Mockingbird", "Harper Lee", "J.B. Lippincott & Co.", 0);
+        insertLibro("The Great Gatsby", "F. Scott Fitzgerald", "Charles Scribner's Sons", 0);
+    }
+
+    private long insertLibro(String titulo, String autor, String editorial, int reservado) {
+        ContentValues values = new ContentValues();
+        values.put(LibroContract.LibroEntry.COLUMN_NAME_TITULO, titulo);
+        values.put(LibroContract.LibroEntry.COLUMN_NAME_AUTOR, autor);
+        values.put(LibroContract.LibroEntry.COLUMN_NAME_EDITORIAL, editorial);
+        values.put(LibroContract.LibroEntry.COLUMN_NAME_RESERVADO, reservado);
+        return Objects.requireNonNull(dbHelper.getWritableDatabase())
+                .insert(LibroContract.LibroEntry.TABLE_NAME, null, values);
+    }
+
+    private void setupListView() {
+        String[] titulos = dbHelper.obtenerTitulosLibros();
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titulos);
         listViewLibros.setAdapter(adapter);
 
-        listViewLibros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String tituloSeleccionado = (String) parent.getItemAtPosition(position);
-
-                Intent intent = new Intent(MainActivity.this, DetalleLibroActivity.class);
-                intent.putExtra("titulo_libro", tituloSeleccionado);
-                startActivity(intent);
-            }
+        listViewLibros.setOnItemClickListener((parent, view, position, id) -> {
+            String tituloSeleccionado = (String) parent.getItemAtPosition(position);
+            startDetalleLibroActivity(tituloSeleccionado);
         });
     }
 
-    private String[] obtenerTitulosLibros() {
-        return dbHelper.obtenerTitulosLibros();
-    }
-
-    private String[] obtenerLibroPorTitulo(String titulo) {
-        return dbHelper.obtenerLibroPorTitulo(titulo);
+    private void startDetalleLibroActivity(String titulo) {
+        Intent intent = new Intent(MainActivity.this, DetalleLibroActivity.class);
+        intent.putExtra("titulo_libro", titulo);
+        startActivity(intent);
     }
 
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.buttonSearch: search_by_name(); break;
+        if (view.getId() == R.id.buttonSearch) {
+            searchByName();
         }
     }
 
     @SuppressLint("Rangs")
-    public void search_by_name() {
+    public void searchByName() {
         String tituloBusqueda = editText.getText().toString().trim().toLowerCase();
-        String[] titulosEncontrados;
+        String[] titulosEncontrados = (tituloBusqueda.isEmpty()) ?
+                dbHelper.obtenerTitulosLibros() :
+                dbHelper.obtenerLibroPorTitulo(tituloBusqueda);
 
-        if (tituloBusqueda.isEmpty()) {
-            titulosEncontrados = dbHelper.obtenerTitulosLibros();
-        } else {
-            titulosEncontrados = dbHelper.obtenerLibroPorTitulo(tituloBusqueda);
-        }
+        updateListViewWithResults(titulosEncontrados);
+    }
 
-        ListView listViewLibros = findViewById(R.id.listaLibros);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titulosEncontrados);
+    private void updateListViewWithResults(String[] titulos) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, titulos);
         listViewLibros.setAdapter(adapter);
 
-
-        listViewLibros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String tituloSeleccionado = (String) parent.getItemAtPosition(position);
-
-                Intent intent = new Intent(MainActivity.this, DetalleLibroActivity.class);
-                intent.putExtra("titulo_libro", tituloSeleccionado);
-                startActivity(intent);
-            }
+        listViewLibros.setOnItemClickListener((parent, view, position, id) -> {
+            String tituloSeleccionado = (String) parent.getItemAtPosition(position);
+            startDetalleLibroActivity(tituloSeleccionado);
         });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        db.close();
+        dbHelper.close();
     }
 }

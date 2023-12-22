@@ -3,4 +3,9 @@
     <string name="app_name">ProyectoEmpotrados</string>
     <string name="reservado">Libro reservado correctamente</string>
     <string name="cancelarReserva">Reserva cancelada</string>
+    <string name="books">Libros:</string>
+    <string name="search">Buscar</string>
+    <string name="clean">Limpiar</string>
+    <string name="reserve">Reservar</string>
+    <string name="cancel">Cancelar Reserva</string>
 </resources>

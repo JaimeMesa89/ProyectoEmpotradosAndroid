@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -42,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
         insertLibro("1984", "George Orwell", "Debolsillo", 0);
         insertLibro("To Kill a Mockingbird", "Harper Lee", "J.B. Lippincott & Co.", 0);
         insertLibro("The Great Gatsby", "F. Scott Fitzgerald", "Charles Scribner's Sons", 0);
+        insertLibro("In search of Lost Time", "Marcel Proust", "Penguin Classics", 0);
+        insertLibro("Ulysses", "James Joyce", "Mass Market Paperback", 0);
+        insertLibro("Don Quixote", "Miguel de Cervantes", "Penguin Classics", 0);
+        insertLibro("One Hundred Years of Solitude", "Gabriel Garcia Marquez", "Penguin Classics", 0);
     }
 
     private long insertLibro(String titulo, String autor, String editorial, int reservado) {
@@ -71,15 +76,23 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void hideSoftKeyboard(View v) {
+        InputMethodManager inputMethodManager;
+        inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
     public void onClick(View view) {
-        if (view.getId() == R.id.buttonSearch) {
-            searchByName();
+        switch (view.getId()) {
+            case R.id.buttonSearch: searchByName(); break;
+            case R.id.buttonClean: buttonClean(); break;
         }
+        hideSoftKeyboard(view);
     }
 
     @SuppressLint("Rangs")
     public void searchByName() {
-        String tituloBusqueda = editText.getText().toString().trim().toLowerCase();
+        String tituloBusqueda = editText.getText().toString().trim();
         String[] titulosEncontrados = (tituloBusqueda.isEmpty()) ?
                 dbHelper.obtenerTitulosLibros() :
                 dbHelper.obtenerLibroPorTitulo(tituloBusqueda);
@@ -95,6 +108,11 @@ public class MainActivity extends AppCompatActivity {
             String tituloSeleccionado = (String) parent.getItemAtPosition(position);
             startDetalleLibroActivity(tituloSeleccionado);
         });
+    }
+
+    private void buttonClean() {
+        editText.setText("");
+        setupListView();
     }
 
     @Override

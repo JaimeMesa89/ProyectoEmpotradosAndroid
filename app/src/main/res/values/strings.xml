@@ -2,4 +2,9 @@
     <string name="app_name">ProyectoEmpotrados</string>
     <string name="reservado">Book reserved correctly</string>
     <string name="cancelarReserva">Reservation canceled</string>
+    <string name="books">Books:</string>
+    <string name="search">Search</string>
+    <string name="clean">Clean</string>
+    <string name="reserve">Reserve</string>
+    <string name="cancel">Cancel Reserve</string>
 </resources>
